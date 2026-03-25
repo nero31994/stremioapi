@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     const path = url.pathname;
 
     // ✅ MANIFEST
-    if (path.endsWith('/manifest.json')) {
+    if (path.includes('manifest.json')) {
       return res.status(200).json({
         id: "nxb.vixsrc",
         version: "1.0.0",
