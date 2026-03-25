@@ -14,7 +14,7 @@ const builder = new addonBuilder(manifest);
 
 // 🔥 Convert IMDB → TMDB
 async function getTMDB(imdb) {
-  const res = await fetch(`https://api.themoviedb.org/3/find/${imdb}?api_key=YOUR_TMDB_KEY&external_source=imdb_id`);
+  const res = await fetch(`https://api.themoviedb.org/3/find/${imdb}?api_key=488eb36776275b8ae18600751059fb49&external_source=imdb_id`);
   const data = await res.json();
 
   if (data.movie_results?.length) {
