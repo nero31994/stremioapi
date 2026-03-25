@@ -1,4 +1,4 @@
-import { addonBuilder, serveHTTP } from 'stremio-addon-sdk';
+import { addonBuilder } from 'stremio-addon-sdk';
 
 const manifest = {
   id: "nxb.vixsrc",
@@ -68,7 +68,6 @@ builder.defineStreamHandler(async ({ type, id }) => {
     if (type === "movie") {
       url = `https://vixsrc.to/movie/${tmdb.id}`;
     } else {
-      // ✅ FIXED series parsing
       const parts = id.split(":");
       const season = parts[1];
       const episode = parts[2];
@@ -95,10 +94,24 @@ builder.defineStreamHandler(async ({ type, id }) => {
   }
 });
 
-// ✅ FIXED Vercel handler (NO MORE 404)
 const addonInterface = builder.getInterface();
 
-export default function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  serveHTTP(addonInterface, req, res);
+// ✅ FIXED HANDLER (NO serveHTTP, NO CRASH)
+export default async function handler(req, res) {
+  try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const url = req.url;
+
+    // 👉 MANIFEST
+    if (url.endsWith('/manifest.json')) {
+      return res.status(200).json(manifest);
+    }
+
+    // 👉 STREAM HANDLER (Stremio calls this)
+    return addonInterface(req, res);
+
+  } catch (e) {
+    res.status(500).json({ error: e.toString() });
+  }
 }
