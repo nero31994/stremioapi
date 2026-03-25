@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     const path = url.pathname;
 
     // ✅ MANIFEST
-    if (path.includes('manifest.json')) {
+if (path.endsWith('/manifest.json')) {
       return res.status(200).json({
         id: "nxb.vixsrc",
         version: "1.0.0",
@@ -19,11 +19,14 @@ export default async function handler(req, res) {
     }
 
     // ✅ STREAM HANDLER
-    if (path.includes('/stream/')) {
-      const parts = path.split('/');
-      const type = parts[3];
-      const id = parts[4];
+    const match = path.match(/\/stream\/(movie|series)\/(.+)\.json/);
 
+if (!match) {
+  return res.json({ streams: [] });
+}
+
+const type = match[1];
+const id = match[2];
       const tmdb = await getTMDB(id);
       if (!tmdb) return res.json({ streams: [] });
 
