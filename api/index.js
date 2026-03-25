@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     const path = url.pathname;
 
     // ✅ MANIFEST
-if (path.endsWith('/manifest.json')) {
+    if (path.endsWith('/manifest.json')) {
       return res.status(200).json({
         id: "nxb.vixsrc",
         version: "1.0.0",
@@ -18,15 +18,17 @@ if (path.endsWith('/manifest.json')) {
       });
     }
 
-    // ✅ STREAM HANDLER
-    const match = path.match(/\/stream\/(movie|series)\/(.+)\.json/);
+    // ✅ STREAM HANDLER (only runs if matched)
+    if (path.includes('/stream/')) {
+      const match = path.match(/\/stream\/(movie|series)\/(.+)\.json/);
 
-if (!match) {
-  return res.json({ streams: [] });
-}
+      if (!match) {
+        return res.json({ streams: [] });
+      }
 
-const type = match[1];
-const id = match[2];
+      const type = match[1];
+      const id = match[2];
+
       const tmdb = await getTMDB(id);
       if (!tmdb) return res.json({ streams: [] });
 
@@ -60,55 +62,10 @@ const id = match[2];
       });
     }
 
-    // fallback
-    res.status(200).send("Addon running");
+    // ✅ fallback (now works again)
+    return res.status(200).send("Addon running");
 
   } catch (e) {
-    res.status(500).json({ error: e.toString() });
-  }
-}
-
-// 🔥 TMDB
-async function getTMDB(imdb) {
-  try {
-    const res = await fetch(`https://api.themoviedb.org/3/find/${imdb}?api_key=488eb36776275b8ae18600751059fb49&external_source=imdb_id`);
-    const data = await res.json();
-
-    if (data.movie_results?.length) {
-      return { id: data.movie_results[0].id };
-    }
-
-    if (data.tv_results?.length) {
-      return { id: data.tv_results[0].id };
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-// 🔥 VixSrc extractor
-async function extractVix(url) {
-  try {
-    const res = await fetch(url, {
-      headers: { Referer: url }
-    });
-
-    const html = await res.text();
-
-    const token = html.match(/['"]token['"]: ?['"](.*?)['"]/)?.[1];
-    const expires = html.match(/['"]expires['"]: ?['"](.*?)['"]/)?.[1];
-    const base = html.match(/url: ?['"](.*?)['"]/)?.[1];
-
-    if (!token || !expires || !base) return null;
-
-    const u = new URL(base);
-    const playlist = `${u.origin}${u.pathname}.m3u8?${u.searchParams}`;
-
-    return `${playlist}&token=${token}&expires=${expires}&h=1`;
-
-  } catch {
-    return null;
+    return res.status(500).json({ error: e.toString() });
   }
 }
